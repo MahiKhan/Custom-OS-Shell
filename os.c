@@ -170,7 +170,7 @@ int main (void)
 				}
 				else if(strcmp(goToDirectory, "..") ==1) // if == 1 then a specific folders been specified 
 				{
-				    newDirectory = strcat(cwd, "/"); // join strings
+				    newDirectory = strcat(cwd, "/"); // join strings together
 					newDirectory = strcat(newDirectory, goToDirectory);
 				}			
 								  
