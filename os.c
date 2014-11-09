@@ -4,7 +4,7 @@
 #include <unistd.h> 
 #include <string.h> 
 
-#define _GNU_SOURCE // Used for getline() function - note this function will work on linux machines mostly. 
+#define _GNU_SOURCE // Used for getline() function - works on both linux and mac os
 char input[1000]; // whole line input user types in 
 char *command; // individual command from input  
 char *arguements[500]; // For holding arguements 
@@ -46,7 +46,7 @@ int main (void)
 			memmove(&shorten[0], &shorten[5], (strlen(shorten) - 5 + 1)); // this code removes the PATH= from the path variable - http://stackoverflow.com/questions/12440212/remove-a-substring-in-c-given-positions-of-substring
 
 			setenv("PATH", path, 1); // set the environment variable 
-			/* To Print - char* pPath = getenv ("PATH"); printf("Current path is: %s \n", pPath); */
+			/* To Print -  char* pPath = getenv ("PATH"); printf("Current path is: %s \n", pPath); */
 		}
 	
 		char *foundHome = strstr(line, "HOME=");
@@ -59,13 +59,12 @@ int main (void)
 			memmove(&shorten2[0], &shorten2[5], (strlen(shorten2) - 5 + 1)); // this code removes the HOME= from the home variable 
 	
 			setenv("HOME", home, 1);
-		}
-
-		if(!(foundHome || foundPath)) { // if neither found on a line - will either be home or profile on a line so neither = one or the other not set
-			printf("Path or home variable not set in profile \n");
-		}				
+		}		
    	}
-	
+
+   	if(strlen(path) == 0) { printf("Path variable not set in profile \n"); } // if not set from profile, report error 
+   	if(strlen(home) == 0) { printf("Home variable not set in profile \n"); }
+
  	fclose(fp);
    	if (line) 
    	{
@@ -141,11 +140,10 @@ int main (void)
 			{
 				endShell = 1;
 			}
-
+			
+			/*4) Handle CD command manually as not a program found in path.  */
 			else if(strcmp(command,"cd") == 0) 
 			{
-				/*4) Handle CD command manually as not a program found in path. Cases - a)  */
-
 				getcwd(cwd, sizeof(cwd));   // get current working directory 
 
 				char *newDirectory;
@@ -154,7 +152,7 @@ int main (void)
 				arguements[1] = strtok(NULL, " \n");
 				goToDirectory = arguements[1]; // get arguements to cd 
 			
-				if(goToDirectory == NULL)  // no arguements to cd 
+				if(goToDirectory == NULL)  // just cd types in, no args
 				{					
 					newDirectory = getenv("HOME"); // get home environment variable and go there when just 'cd' run		
 				}
@@ -168,15 +166,20 @@ int main (void)
 					newDirectory = CurrentDirectory;
 					// printf("Newdirectory is: %s \n", newDirectory);
 				}
-				else if(strcmp(goToDirectory, "..") ==1) // if == 1 then a specific folders been specified 
+				else if(strcmp(goToDirectory, "..") !=0) // if comparison not true then a specific folders been specified 
 				{
 				    newDirectory = strcat(cwd, "/"); // join strings together
 					newDirectory = strcat(newDirectory, goToDirectory);
 				}			
 								  
-				if(chdir(newDirectory) != 0) // chdir to newDirectory, give error if it doesn't succesffuly change directory 
-				{
-				    printf("Current Home Directory does not exist\n");
+				if(chdir(newDirectory) != 0) // chdir to newDirectory, give errors if it doesn't succesffuly change directory 
+				{	
+					if(goToDirectory == NULL) {
+						printf("Current Home path does not exist\n");
+					}
+					else if(strcmp(goToDirectory, "..") !=0) {
+				   		printf("Specified directory does not exist\n");	
+					}
 				}
 				
 				goToDirectory = NULL; // clear variables 
