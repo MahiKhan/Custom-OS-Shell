@@ -1,6 +1,6 @@
 Custom-OS-Shell
 ===============
-
+Replica of a Unix systtem Shell
 Created as part of 3rd Year Operating Systems Module at University College London (UCL) 
 
 Requires .profile file to be in the same directory as os.c file (the shell) to be run. 
